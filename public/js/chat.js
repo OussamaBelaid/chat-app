@@ -10,10 +10,12 @@ const $sideBar = document.querySelector('#sidebar')
 const messageTemplate = document.querySelector('#message-template').innerHTML
 const locationMessageTemplate = document.querySelector('#location-message-template').innerHTML
 const sideBarTemplate = document.querySelector('#sidebar-template').innerHTML
-
+const sendLocation =  document.querySelector('#send-location')
 
 //Options
+//get the username and the room from the query string after submitting the form
 const {username , room} = Qs.parse(location.search,{ignoreQueryPrefix : true})
+//set scrolling configuration 
 const autoScroll = () => {
     //New message element
   const $newMessage = $messages.lastElementChild
@@ -38,6 +40,8 @@ const autoScroll = () => {
      }
 
 }
+// set the message in the template
+// handle the message invoked event from backend
 socket.on('message',(message) => {
     
     const html = Mustache.render(messageTemplate,{
@@ -49,7 +53,8 @@ socket.on('message',(message) => {
     $messages.insertAdjacentHTML('beforeend', html)
 })
 
-
+// set the location message in the template
+// handle the locationMessage invoked event from backend
 socket.on('locationMessage',(url) => {
    const html = Mustache.render(locationMessageTemplate,{
        url : url.url,
@@ -58,7 +63,8 @@ socket.on('locationMessage',(url) => {
    })
    $messages.insertAdjacentHTML('beforeend',html)
 })
-
+// set the users connected to the room in the template
+// handle the roomData invoked methode from backend
 socket.on('roomData',({room,users}) => {
    const html = Mustache.render(sideBarTemplate,{
        room,
@@ -67,6 +73,9 @@ socket.on('roomData',({room,users}) => {
    })
    $sideBar.innerHTML = html
 })
+// listen for submit event
+//invoke senMessage event and send the message typed by the user
+// some user interface configuration like enable and disable button when submitting
 $messageForm.addEventListener('submit',(e) => {
     e.preventDefault()
     $messageFormButton.setAttribute('disabled','disabled')
@@ -86,13 +95,14 @@ $messageForm.addEventListener('submit',(e) => {
     })
 })
 
-
+//
 socket.on('getMessage',(message) => {
     console.log(message)
 })
 
-
-document.querySelector('#send-location').addEventListener('click', () => {
+//event click listener on send location
+//invoke senLocation event to send location data
+sendLocation.addEventListener('click', () => {
 
     if(!navigator.geolocation)
     {
@@ -112,7 +122,8 @@ document.querySelector('#send-location').addEventListener('click', () => {
     })
 })
 
-
+// invoke join to connect the user to the room 
+// redirect user to the chat room
 socket.emit('join',{username,room},(error) => { 
     if(error)
     {
